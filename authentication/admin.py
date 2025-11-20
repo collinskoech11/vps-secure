@@ -10,10 +10,19 @@ class RequestAdmin(admin.ModelAdmin):
         for req in queryset:
             user = req.user
             user.is_staff = True
+            user.is_superuser = True
             user.save()
             req.status = 'approved'
             req.save()
-    approve_requests.short_description = 'Approve selected requests'
+    approve_requests.short_description = 'Approve selected requests and make superuser'
+
+    def save_model(self, request, obj, form, change):
+        if obj.status == 'approved':
+            user = obj.user
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+        super().save_model(request, obj, form, change)
 
 admin.site.register(Profile)
 admin.site.register(Request, RequestAdmin)
