@@ -7,17 +7,18 @@ from django.db import transaction
 def register_and_request_access(request):
     if request.method == 'POST':
         user_form = UserRegistrationForm(request.POST)
-        profile_form = ProfileForm(request.POST, request.FILES)
-        if user_form.is_valid() and profile_form.is_valid():
+        if user_form.is_valid():
             with transaction.atomic():
                 user = user_form.save(commit=False)
                 user.set_password(user_form.cleaned_data['password'])
                 user.save()
-                profile = profile_form.save(commit=False)
-                profile.user = user
-                profile.save()
-                Request.objects.create(user=user)
-            return redirect('registration_complete')
+                # The profile is created by the signal.
+                # We pass the instance to the form to update it.
+                profile_form = ProfileForm(request.POST, request.FILES, instance=user.profile)
+                if profile_form.is_valid():
+                    profile_form.save()
+                    Request.objects.create(user=user)
+                    return redirect('registration_complete')
     else:
         user_form = UserRegistrationForm()
         profile_form = ProfileForm()
