@@ -24,5 +24,10 @@ class RequestAdmin(admin.ModelAdmin):
             user.save()
         super().save_model(request, obj, form, change)
 
-admin.site.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'location', 'birth_date', 'location', 'phone_number')
+    search_fields = ('user__username', 'location')
+
+
 admin.site.register(Request, RequestAdmin)
+admin.site.register(Profile, ProfileAdmin)
